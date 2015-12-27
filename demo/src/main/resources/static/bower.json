@@ -1,0 +1,22 @@
+{
+  "name": "bower.json",
+  "authors": [
+    "NCuculova <nadica_cuculova@yahoo.com>"
+  ],
+  "description": "oauth2 demo",
+  "main": "",
+  "moduleType": [],
+  "license": "MIT",
+  "homepage": "",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "devDependencies": {
+    "bootstrap": "~3.3.5",
+    "font-awesome": "fontawesome#~4.4.0"
+  }
+}

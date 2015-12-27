@@ -1,0 +1,27 @@
+<resources>
+    <string name="app_name">DemoGallery</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+
+    <string name="sign_in">Sign in</string>
+    <string name="or">or</string>
+    <string name="sign_up">Sign up</string>
+    <string name="password">Password</string>
+    <string name="password_confirm">Confirm password</string>
+    <string name="email">Email</string>
+    <string name="invalid_credentials">Invalid credentials</string>
+    <string name="action_settings">Settings</string>
+    <string name="input_name">Album name</string>
+
+    <string name="alert">Note</string>
+    <string name="alert_message">This action will delete all containing images.</string>
+    <string name="title_activity_image">ImageActivity</string>
+    <string name="action_continue">Continue</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="dummy_button">dummy_button</string>
+    <string name="email_invalid">Email is invalid</string>
+    <string name="email_taken">Email is already in use</string>
+    <string name="password_error">password does not match</string>
+
+</resources>

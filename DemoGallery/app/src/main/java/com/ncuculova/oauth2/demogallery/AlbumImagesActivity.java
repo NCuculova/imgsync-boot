@@ -17,6 +17,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.MenuItem;
@@ -81,6 +82,7 @@ public class AlbumImagesActivity extends AppCompatActivity
     DemoGalleryHttpClient mClient;
     DownloadManager mDownloadManager;
     Preferences mPreferences;
+    static final String TAG = "AlbumImagesActivity";
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -91,8 +93,6 @@ public class AlbumImagesActivity extends AppCompatActivity
         setSupportActionBar(toolbar);
         getSupportActionBar().setHomeButtonEnabled(true);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        // mTransparentColor = ContextCompat.getDrawable(getApplicationContext(),
-        //       R.color.transparent);
         Intent intent = getIntent();
         mAlbumId = intent.getLongExtra("album_id", 0);
         mAlbumName = intent.getStringExtra("album_name");
@@ -158,14 +158,13 @@ public class AlbumImagesActivity extends AppCompatActivity
             Toast.makeText(getApplicationContext(), "Please enter album name", Toast.LENGTH_SHORT).show();
             showButtons();
         } else if (mAlbumName == null) {
-            mClient.createAlbum(textEntered, new JsonHttpResponseHandler() {
+            mClient.createAlbum(textEntered, new DemoGalleryHttpClient.ResponseHandler() {
                 @Override
-                public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
-                    super.onSuccess(statusCode, headers, response);
+                public void onSuccessJsonObject(JSONObject jsonObject) {
                     Toast.makeText(getApplicationContext(), "New album is created", Toast.LENGTH_SHORT).show();
                     try {
-                        mAlbumId = response.getLong("id");
-                        mAlbumName = response.getString("name");
+                        mAlbumId = jsonObject.getLong("id");
+                        mAlbumName = jsonObject.getString("name");
                         mFabAddImage.setVisibility(View.VISIBLE);
                         showButtons();
                     } catch (JSONException e) {
@@ -175,19 +174,35 @@ public class AlbumImagesActivity extends AppCompatActivity
             });
         } else if (!mAlbumName.equals(textEntered)) {
             mAlbumName = textEntered;
-            mClient.updateAlbum(mAlbumName, mAlbumId, new JsonHttpResponseHandler() {
-                @Override
-                public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
-                    super.onSuccess(statusCode, headers, response);
-                    Toast.makeText(getApplicationContext(), "This album has been updated",
-                            Toast.LENGTH_SHORT).show();
-                    showButtons();
-                }
-            });
+            mClient.updateAlbum(mAlbumName, mAlbumId, mOnUpdateAlbumHandler);
         } else {
             showButtons();
         }
     }
+
+    JsonHttpResponseHandler mOnUpdateAlbumHandler = new JsonHttpResponseHandler() {
+        @Override
+        public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
+            super.onSuccess(statusCode, headers, response);
+            Toast.makeText(getApplicationContext(), "This album has been updated",
+                    Toast.LENGTH_SHORT).show();
+            showButtons();
+        }
+
+        @Override
+        public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONObject errorResponse) {
+            super.onFailure(statusCode, headers, throwable, errorResponse);
+            if (statusCode == 401) {
+                mClient.getAccessTokenFromRefreshToken(new DemoGalleryHttpClient.ResponseHandler() {
+                    @Override
+                    public void onSuccessJsonObject(JSONObject jsonObject) {
+                        super.onSuccessJsonObject(jsonObject);
+                        mClient.updateAlbum(mAlbumName, mAlbumId, mOnUpdateAlbumHandler);
+                    }
+                });
+            }
+        }
+    };
 
     void showButtons() {
         mPbSaveProgress.setVisibility(View.GONE);
@@ -203,18 +218,12 @@ public class AlbumImagesActivity extends AppCompatActivity
 
         @Override
         public void onImageDelete(final int position, long albumId, final long imgId) {
-            mClient.deleteImage(albumId, imgId, new JsonHttpResponseHandler() {
+            mClient.deleteImage(albumId, imgId, new DemoGalleryHttpClient.ResponseHandler() {
                 @Override
-                public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
-                    super.onSuccess(statusCode, headers, response);
+                public void onSuccessJsonObject(JSONObject jsonObject) {
+                    super.onSuccessJsonObject(jsonObject);
                     mImageAdapter.deleteImageAt(position);
-                    System.out.println(response.toString());
-                }
-
-                @Override
-                public void onFailure(int statusCode, Header[] headers, String responseString, Throwable throwable) {
-                    super.onFailure(statusCode, headers, responseString, throwable);
-                    System.out.println(responseString);
+                    System.out.println(jsonObject.toString());
                 }
             });
         }
@@ -223,16 +232,24 @@ public class AlbumImagesActivity extends AppCompatActivity
         public void onImageDownload(long imgId) {
             mDownloadManager = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
             Uri resourceUrl = Uri.parse(String.format("%s/api/image/%d", DemoGalleryHttpClient.BASE_URI, imgId));
-            DownloadManager.Request request = new DownloadManager.Request(resourceUrl);
+            final DownloadManager.Request request = new DownloadManager.Request(resourceUrl);
             request.addRequestHeader("Authorization", String.format("Bearer %s", mPreferences.getAccessToken()));
             request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI);
             request.setTitle("Downloading...");
             request.setDescription("ImgSync is downloading the image");
-            //Set the local destination for the downloaded file to a path within the application's external files directory
-            request.setDestinationInExternalFilesDir(getApplicationContext(), Environment.DIRECTORY_DOWNLOADS, getOutputMediaFileName());
-
-            //Enqueue a new download and save the referenceId
-            mDownloadReference = mDownloadManager.enqueue(request);
+            //Set the local destination for the downloaded file to a path within the application's
+            // external files directory
+            request.setDestinationInExternalFilesDir(getApplicationContext(), Environment.DIRECTORY_DOWNLOADS,
+                    getOutputMediaFileName());
+            mClient.dummyRequest(new DemoGalleryHttpClient.ResponseHandler() {
+                @Override
+                public void onSuccessJsonObject(JSONObject jsonObject) {
+                    super.onSuccessJsonObject(jsonObject);
+                    //Enqueue a new download and save the referenceId
+                    mDownloadReference = mDownloadManager.enqueue(request);
+                    Log.d(TAG, "Download after access token is confirmed");
+                }
+            });
         }
 
         @Override
@@ -271,34 +288,18 @@ public class AlbumImagesActivity extends AppCompatActivity
             }
             try {
                 InputStream is = getContentResolver().openInputStream(selectedImageURI);
-                mClient.uploadImage(mAlbumId, image, is, new JsonHttpResponseHandler() {
+                mClient.uploadImage(mAlbumId, image, is, new DemoGalleryHttpClient.ResponseHandler() {
                     @Override
-                    public void onFailure(int statusCode, Header[] headers, String responseString, Throwable throwable) {
-                        super.onFailure(statusCode, headers, responseString, throwable);
+                    public void onFailureJsonObject(int statusCode, JSONObject jsonObject) {
                         mPbProgress.setVisibility(View.GONE);
-                        System.out.println("F1: " + statusCode);
                     }
 
                     @Override
-                    public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONObject errorResponse) {
-                        super.onFailure(statusCode, headers, throwable, errorResponse);
-                        System.out.println("F2: " + statusCode);
-                    }
-
-                    @Override
-                    public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONArray errorResponse) {
-                        super.onFailure(statusCode, headers, throwable, errorResponse);
-                        System.out.println("F3: " + statusCode);
-                    }
-
-                    @Override
-                    public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
-                        super.onSuccess(statusCode, headers, response);
+                    public void onSuccessJsonObject(JSONObject jsonObject) {
                         mPbProgress.setVisibility(View.GONE);
                         Toast.makeText(getApplicationContext(), "Image added to album",
                                 Toast.LENGTH_SHORT).show();
                         loadImages(true);
-                        System.out.println("S1");
                     }
                 });
             } catch (FileNotFoundException e) {
@@ -370,6 +371,7 @@ public class AlbumImagesActivity extends AppCompatActivity
                                 "Download unsuccessful", Toast.LENGTH_LONG);
                         toast.setGravity(Gravity.TOP, 25, 400);
                         toast.show();
+                        System.out.println("Status from download when token invalid: " + c.getInt(columnIndex));
                     }
                 }
             }

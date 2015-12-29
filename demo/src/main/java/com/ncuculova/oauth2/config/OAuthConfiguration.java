@@ -73,7 +73,7 @@ public class OAuthConfiguration {
                     .withClient("img_sync").secret("img_sync_secret")
                     .authorities("USER", "ADMIN")
                     .authorizedGrantTypes("password", "authorization_code", "refresh_token")
-                    .scopes("read").accessTokenValiditySeconds(1800);
+                    .scopes("read").accessTokenValiditySeconds(90);
         }
 
         /**
@@ -86,6 +86,7 @@ public class OAuthConfiguration {
             super.configure(endpoints);
             endpoints.authenticationManager(authenticationManager)
                     .tokenStore(tokenStore());
+
         }
     }
 

@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ProgressBar;
@@ -44,6 +45,7 @@ public class SignUpActivity extends AppCompatActivity {
     DemoGalleryHttpClient mClient;
     EmailValidator mEmailValidator;
     Preferences mPreferences;
+    final String TAG = "SignUpActivity";
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -64,45 +66,52 @@ public class SignUpActivity extends AppCompatActivity {
         String passwordConfirm = mEtPassConfirm.getText().toString();
         if (mEmailValidator.isValid(userName)) {
             if (password.equals(passwordConfirm)) {
-                mClient.signUpUser(userName, password, new JsonHttpResponseHandler() {
-                    @Override
-                    public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
-                        super.onSuccess(statusCode, headers, response);
-                        try {
-                            String username = response.getString("email");
-                            String password = response.getString("password");
-                            mClient.getAccessToken(username, password, new JsonHttpResponseHandler(){
-                                @Override
-                                public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
-                                    super.onSuccess(statusCode, headers, response);
-                                    mPbLogin.setVisibility(View.GONE);
-                                    try {
-                                        mPreferences.setAccessToken(response.getString("access_token"));
-                                        mPreferences.setRefreshToken(response.getString("refresh_token"));
-                                    } catch (JSONException e) {
-                                        e.printStackTrace();
-                                    }
-                                    Intent intent = new Intent(getApplicationContext(), MainActivity.class);
-                                    startActivity(intent);
-                                }
+                mClient.signUpUser(userName, password, new DemoGalleryHttpClient.ResponseHandler() {
 
-                                @Override
-                                public void onFailure(int statusCode, Header[] headers, String responseString, Throwable throwable) {
-                                    super.onFailure(statusCode, headers, responseString, throwable);
-                                    mPbLogin.setVisibility(View.GONE);
-                                }
-                            });
+                    @Override
+                    public void onSuccessJsonObject(JSONObject jsonObject) {
+                        super.onSuccessJsonObject(jsonObject);
+                        String username = null;
+                        String password = null;
+                        try {
+                            username = jsonObject.getString("email");
+                            password = jsonObject.getString("password");
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
+
+                        mClient.getAccessToken(username, password, new DemoGalleryHttpClient.ResponseHandler() {
+
+                            @Override
+                            public void onSuccessJsonObject(JSONObject jsonObject) {
+                                super.onSuccessJsonObject(jsonObject);
+                                mPbLogin.setVisibility(View.GONE);
+                                try {
+                                    mPreferences.setAccessToken(jsonObject.getString("access_token"));
+                                    mPreferences.setRefreshToken(jsonObject.getString("refresh_token"));
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
+                                Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                                startActivity(intent);
+                            }
+
+                            @Override
+                            public void onFailureJsonObject(int statusCode, JSONObject jsonObject) {
+                                mPbLogin.setVisibility(View.GONE);
+                                Log.d(TAG, "Access token not obtained!");
+                                super.onFailureJsonObject(statusCode, jsonObject);
+                            }
+                        });
                     }
 
                     @Override
-                    public void onFailure(int statusCode, Header[] headers, String responseString, Throwable throwable) {
-                        super.onFailure(statusCode, headers, responseString, throwable);
+                    public void onFailureJsonObject(int statusCode, JSONObject jsonObject) {
                         if (statusCode == 409) {
                             mEtEmail.setError(getString(R.string.email_taken));
+                            Log.e(TAG, "Conflict " + statusCode);
                         }
+                        super.onFailureJsonObject(statusCode, jsonObject);
                     }
                 });
             } else {

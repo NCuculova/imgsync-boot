@@ -34,12 +34,10 @@ public class AlbumAdapter extends RecyclerView.Adapter<AlbumAdapter.AlbumViewHol
     List<Album> mAlbums;
     Context mContext;
     AlbumViewHolder.OnAlbumClickListener mOnAlbumClickListener;
-    Preferences mPreferences;
 
     public AlbumAdapter(Context context) {
         this.mAlbums = new ArrayList<>();
         mContext = context;
-        mPreferences = Preferences.getInstance(context);
     }
 
     public void addAlbum(Album album) {
@@ -99,13 +97,11 @@ public class AlbumAdapter extends RecyclerView.Adapter<AlbumAdapter.AlbumViewHol
         int mPosition;
         Album mAlbum;
         OnAlbumClickListener mOnAlbumClickListener;
-        DemoGalleryHttpClient mClient;
 
         public AlbumViewHolder(Context context, View itemView) {
             super(itemView);
             ButterKnife.bind(this, itemView);
             itemView.setOnClickListener(mOnClickListener);
-            mClient = DemoGalleryHttpClient.getInstance(context);
         }
 
         @OnClick(R.id.btn_delete)

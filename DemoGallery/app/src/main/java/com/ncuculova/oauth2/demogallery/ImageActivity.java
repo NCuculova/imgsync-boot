@@ -6,6 +6,7 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
@@ -14,6 +15,9 @@ import android.widget.ImageView;
 import com.ncuculova.oauth2.demogallery.util.DemoGalleryHttpClient;
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -47,6 +51,8 @@ public class ImageActivity extends AppCompatActivity {
     ImageView mImageView;
 
     PhotoViewAttacher mAttacher;
+    DemoGalleryHttpClient mClient;
+    static final String TAG = "ImageActivity";
 
     private final Runnable mHidePart2Runnable = new Runnable() {
         @SuppressLint("InlinedApi")
@@ -123,21 +129,33 @@ public class ImageActivity extends AppCompatActivity {
 
         Intent intent = getIntent();
         long imgId = intent.getLongExtra("img_id", 0);
-        String imageUrl = String.format("%s/api/image/%d", DemoGalleryHttpClient.BASE_URI, imgId);
-        Picasso picasso = DemoGalleryHttpClient.getPicassoClient(this);
-        picasso.load(imageUrl)
-                .placeholder(R.drawable.ic_action_download)
-                .into(mImageView, new Callback() {
-                    @Override
-                    public void onSuccess() {
-                        mAttacher.update();
-                    }
+        mClient = DemoGalleryHttpClient.getInstance(this);
+        final String imageUrl = String.format("%s/api/image/%d", DemoGalleryHttpClient.BASE_URI, imgId);
+        final Picasso picasso = DemoGalleryHttpClient.getPicassoClient(this);
+        mClient.dummyRequest(new DemoGalleryHttpClient.ResponseHandler() {
+            @Override
+            public void onSuccessJsonObject(JSONObject jsonObject) {
+                super.onSuccessJsonObject(jsonObject);
+                try {
+                    Log.d(TAG, jsonObject.getString("response") + "valid access token is obtained for sure!");
+                    picasso.load(imageUrl)
+                            .placeholder(R.drawable.ic_action_download)
+                            .into(mImageView, new Callback() {
+                                @Override
+                                public void onSuccess() {
+                                    mAttacher.update();
+                                }
 
-                    @Override
-                    public void onError() {
+                                @Override
+                                public void onError() {
 
-                    }
-                });
+                                }
+                            });
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
 
         // Upon interacting with UI controls, delay any scheduled hide()
         // operations to prevent the jarring behavior of controls going away

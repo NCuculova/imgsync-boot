@@ -43,6 +43,13 @@ public class UserController {
     @Autowired
     private AlbumImageService albumImageService;
 
+
+    @RequestMapping(value = "/", method = RequestMethod.GET)
+    public Map<String, String> dummyRequest() {
+        return Collections.singletonMap("response", "OK");
+    }
+
+
     @RequestMapping(value = "/sign_up", method = RequestMethod.POST)
     public User signUp(@RequestParam("username") String username, @RequestParam("password") String password,
                        HttpServletResponse response) {

@@ -44,7 +44,7 @@ public class Preferences {
         editor.commit();
     }
 
-    public boolean isSigned() {
+    public boolean hasAccessToken() {
         if (!getAccessToken().equals("")) {
             return true;
         }

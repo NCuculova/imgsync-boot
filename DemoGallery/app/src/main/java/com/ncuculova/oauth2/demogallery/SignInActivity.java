@@ -3,8 +3,8 @@ package com.ncuculova.oauth2.demogallery;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -22,7 +22,7 @@ import butterknife.OnClick;
 import cz.msebera.android.httpclient.Header;
 
 /**
- * Created by ncuculova on 7.12.15.
+ * First step of providing resource owner credentials for an access token
  */
 public class SignInActivity extends AppCompatActivity {
 
@@ -40,6 +40,7 @@ public class SignInActivity extends AppCompatActivity {
 
     DemoGalleryHttpClient mClient;
     Preferences mPreferences;
+    final String TAG = "SignInActivity";
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -49,7 +50,8 @@ public class SignInActivity extends AppCompatActivity {
 
         mClient = DemoGalleryHttpClient.getInstance(this);
         mPreferences = Preferences.getInstance(this);
-        if(mPreferences.isSigned()){
+        if (mPreferences.hasAccessToken()) {
+            Log.d(TAG, "User is authorized");
             Intent intent = new Intent(getApplicationContext(), MainActivity.class);
             startActivity(intent);
             finish();
@@ -61,14 +63,14 @@ public class SignInActivity extends AppCompatActivity {
         mPbLogin.setVisibility(View.VISIBLE);
         final String username = mEtEmail.getText().toString();
         final String password = mEtPassword.getText().toString();
-        mClient.getAccessToken(username, password, new JsonHttpResponseHandler() {
+        mClient.getAccessToken(username, password, new DemoGalleryHttpClient.ResponseHandler() {
             @Override
-            public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
-                super.onSuccess(statusCode, headers, response);
+            public void onSuccessJsonObject(JSONObject jsonObject) {
+                super.onSuccessJsonObject(jsonObject);
                 try {
                     mPbLogin.setVisibility(View.GONE);
-                    mPreferences.setAccessToken(response.getString("access_token"));
-                    mPreferences.setRefreshToken(response.getString("refresh_token"));
+                    mPreferences.setAccessToken(jsonObject.getString("access_token"));
+                    mPreferences.setRefreshToken(jsonObject.getString("refresh_token"));
                     Intent intent = new Intent(getApplicationContext(), MainActivity.class);
                     startActivity(intent);
                     finish();
@@ -76,11 +78,13 @@ public class SignInActivity extends AppCompatActivity {
                     e.printStackTrace();
                 }
             }
+
             @Override
-            public void onFailure(int statusCode, Header[] headers, String responseString, Throwable throwable) {
-                super.onFailure(statusCode, headers, responseString, throwable);
+            public void onFailureJsonObject(int statusCode, JSONObject jsonObject) {
                 mPbLogin.setVisibility(View.GONE);
                 mTvInvalid.setVisibility(View.VISIBLE);
+                Log.d(TAG, "Invalid credentials");
+                super.onFailureJsonObject(statusCode, jsonObject);
             }
         });
     }

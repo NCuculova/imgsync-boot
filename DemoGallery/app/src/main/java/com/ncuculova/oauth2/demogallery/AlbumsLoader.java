@@ -2,10 +2,12 @@ package com.ncuculova.oauth2.demogallery;
 
 import android.content.Context;
 import android.support.v4.content.AsyncTaskLoader;
+import android.util.Log;
 
 import com.loopj.android.http.JsonHttpResponseHandler;
 import com.ncuculova.oauth2.demogallery.model.Album;
 import com.ncuculova.oauth2.demogallery.util.DemoGalleryHttpClient;
+import com.ncuculova.oauth2.demogallery.util.HttpLoader;
 import com.ncuculova.oauth2.demogallery.util.JSONParser;
 
 import org.json.JSONArray;
@@ -17,7 +19,7 @@ import java.util.List;
 
 import cz.msebera.android.httpclient.Header;
 
-public class AlbumsLoader extends AsyncTaskLoader<List<Album>> {
+public class AlbumsLoader extends HttpLoader<List<Album>> {
 
     long mUserId;
     DemoGalleryHttpClient mClient;
@@ -29,30 +31,24 @@ public class AlbumsLoader extends AsyncTaskLoader<List<Album>> {
     }
 
     @Override
-    protected void onStartLoading() {
-        super.onStartLoading();
-        forceLoad();
-    }
-
-    @Override
-    public List<Album> loadInBackground() {
+    protected void onForceLoad() {
+        super.onForceLoad();
         final List<Album> albums = new ArrayList<>();
-        mClient.getAlbumsSync(new JsonHttpResponseHandler() {
+        mClient.getAlbums(new DemoGalleryHttpClient.ResponseHandler() {
 
             @Override
-            public void onSuccess(int statusCode, Header[] headers, JSONArray response) {
-                super.onSuccess(statusCode, headers, response);
+            public void onSuccessJsonArray(JSONArray jsonArray) {
+                super.onSuccessJsonArray(jsonArray);
                 try {
-                    for (int i = 0; i < response.length(); i++) {
-                        JSONObject data = (JSONObject) response.get(i);
+                    for (int i = 0; i < jsonArray.length(); i++) {
+                        JSONObject data = (JSONObject) jsonArray.get(i);
                         albums.add(JSONParser.parseAlbum(data));
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
-
+                deliverResult(albums);
             }
         });
-        return albums;
     }
 }

@@ -24,4 +24,6 @@
     <string name="email_taken">Email is already in use</string>
     <string name="password_error">password does not match</string>
 
+    <string name="facebook_app_id">1658064361149561</string>
+
 </resources>

@@ -9,6 +9,12 @@ import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.facebook.CallbackManager;
+import com.facebook.FacebookCallback;
+import com.facebook.FacebookException;
+import com.facebook.FacebookSdk;
+import com.facebook.login.LoginResult;
+import com.facebook.login.widget.LoginButton;
 import com.loopj.android.http.JsonHttpResponseHandler;
 import com.ncuculova.oauth2.demogallery.util.DemoGalleryHttpClient;
 import com.ncuculova.oauth2.demogallery.util.Preferences;
@@ -38,13 +44,18 @@ public class SignInActivity extends AppCompatActivity {
     @Bind(R.id.tv_invalid_credentials)
     TextView mTvInvalid;
 
+    @Bind(R.id.login_button)
+    LoginButton mLoginFbBtn;
+
     DemoGalleryHttpClient mClient;
     Preferences mPreferences;
     final String TAG = "SignInActivity";
+    CallbackManager mCallbackManager;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        FacebookSdk.sdkInitialize(this);
         setContentView(R.layout.activity_signin);
         ButterKnife.bind(this);
 
@@ -56,6 +67,68 @@ public class SignInActivity extends AppCompatActivity {
             startActivity(intent);
             finish();
         }
+        mCallbackManager = CallbackManager.Factory.create();
+        mLoginFbBtn.setReadPermissions("email");
+        mLoginFbBtn.registerCallback(mCallbackManager, new FacebookCallback<LoginResult>() {
+            @Override
+            public void onSuccess(LoginResult loginResult) {
+                String token = loginResult.getAccessToken().getToken();
+                String userId = loginResult.getAccessToken().getUserId();
+                mClient.signInWithFb(token, userId, new JsonHttpResponseHandler() {
+                    @Override
+                    public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
+                        super.onSuccess(statusCode, headers, response);
+                        String username = null;
+                        String password = null;
+                        try {
+                            username = response.getString("email");
+                            password = response.getString("password");
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                        mClient.getAccessToken(username, password, new DemoGalleryHttpClient.ResponseHandler() {
+
+                            @Override
+                            public void onSuccessJsonObject(JSONObject jsonObject) {
+                                super.onSuccessJsonObject(jsonObject);
+                                mPbLogin.setVisibility(View.GONE);
+                                try {
+                                    mPreferences.setAccessToken(jsonObject.getString("access_token"));
+                                    mPreferences.setRefreshToken(jsonObject.getString("refresh_token"));
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
+                                Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                                startActivity(intent);
+                            }
+
+                            @Override
+                            public void onFailureJsonObject(int statusCode, JSONObject jsonObject) {
+                                mPbLogin.setVisibility(View.GONE);
+                                Log.d(TAG, "Access token not obtained!");
+                                super.onFailureJsonObject(statusCode, jsonObject);
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONObject errorResponse) {
+                        super.onFailure(statusCode, headers, throwable, errorResponse);
+                        System.out.println(errorResponse.toString());
+                    }
+                });
+            }
+
+            @Override
+            public void onCancel() {
+                System.out.println("CANCELED");
+            }
+
+            @Override
+            public void onError(FacebookException error) {
+                System.out.println("ERROR");
+            }
+        });
     }
 
     @OnClick(R.id.btn_sign_in)
@@ -93,5 +166,16 @@ public class SignInActivity extends AppCompatActivity {
     public void signUp() {
         Intent intent = new Intent(getApplicationContext(), SignUpActivity.class);
         startActivity(intent);
+    }
+
+   /* @OnClick(R.id.login_button)
+    public void signInWithFacebook(){
+
+    }*/
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        mCallbackManager.onActivityResult(requestCode, resultCode, data);
     }
 }

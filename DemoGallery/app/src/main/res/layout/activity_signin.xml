@@ -22,7 +22,7 @@
         android:id="@+id/buttons"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
+        android:layout_above="@+id/login_button"
         android:orientation="horizontal">
 
         <Button
@@ -54,6 +54,17 @@
             android:text="@string/sign_up" />
 
     </LinearLayout>
+
+    <com.facebook.login.widget.LoginButton
+        android:id="@+id/login_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="30dp"
+        android:layout_marginBottom="30dp"
+        android:paddingBottom="12dp"
+        android:paddingTop="12dp"
+        android:layout_alignParentBottom="true"/>
 
 
     <android.support.design.widget.TextInputLayout

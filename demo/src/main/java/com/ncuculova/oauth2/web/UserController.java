@@ -1,15 +1,18 @@
 package com.ncuculova.oauth2.web;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ncuculova.oauth2.model.*;
 import com.ncuculova.oauth2.service.AlbumImageService;
 import com.ncuculova.oauth2.service.AlbumService;
 import com.ncuculova.oauth2.service.ImageService;
 import com.ncuculova.oauth2.service.UserService;
+import com.ncuculova.oauth2.util.StringUtils;
 import net.coobird.thumbnailator.Thumbnails;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
@@ -49,6 +52,25 @@ public class UserController {
         return Collections.singletonMap("response", "OK");
     }
 
+    @RequestMapping(value = "/fb_login", method = RequestMethod.POST)
+    public User signInWithFb(@RequestParam("token") String token,
+                             @RequestParam("userId") String userId,
+                             HttpServletResponse response) {
+        String getFbNodeURL = "https://graph.facebook.com/v2.5/";
+        RestTemplate client = new RestTemplate();
+        JsonNode node = client.getForObject(String.format("%s%s?fields=email&access_token=%s", getFbNodeURL, userId, token),
+                JsonNode.class);
+        String username = node.get("email").asText();
+        User user = userService.findByEmail(username);
+        if (user == null) {
+            user = new User();
+            user.setEmail(username);
+            user.setPassword(StringUtils.generateRandomPassword());
+            userService.save(user);
+            response.setStatus(HttpServletResponse.SC_CREATED);
+        }
+        return user;
+    }
 
     @RequestMapping(value = "/sign_up", method = RequestMethod.POST)
     public User signUp(@RequestParam("username") String username, @RequestParam("password") String password,

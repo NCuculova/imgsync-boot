@@ -99,7 +99,7 @@ public class OAuthConfiguration {
 
             http
                     .authorizeRequests()
-                    .antMatchers("/api/login", "/api/sign_up", "/favicon.ico").permitAll()
+                    .antMatchers("/api/login", "/api/sign_up", "/api/fb_login", "/favicon.ico").permitAll()
                     .anyRequest().authenticated()
                     .and()
                     .exceptionHandling()

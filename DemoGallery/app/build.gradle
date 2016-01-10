@@ -21,6 +21,13 @@ android {
         exclude 'META-INF/LICENSE.txt'
         exclude 'META-INF/NOTICE.txt'
     }
+    lintOptions{
+        abortOnError false
+    }
+}
+
+repositories {
+    mavenCentral()
 }
 
 dependencies {
@@ -37,5 +44,6 @@ dependencies {
     compile 'com.squareup.okhttp:okhttp:2.7.0'
     compile 'com.commit451:PhotoView:1.2.4'
     compile 'commons-validator:commons-validator:1.5.0'
+    compile 'com.facebook.android:facebook-android-sdk:4.7.0'
 
 }

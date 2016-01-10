@@ -292,6 +292,7 @@ public class AlbumImagesActivity extends AppCompatActivity
                     @Override
                     public void onFailureJsonObject(int statusCode, JSONObject jsonObject) {
                         mPbProgress.setVisibility(View.GONE);
+                        System.out.println(jsonObject);
                     }
 
                     @Override

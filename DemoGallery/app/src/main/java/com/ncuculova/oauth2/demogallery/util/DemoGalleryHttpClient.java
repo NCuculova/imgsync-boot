@@ -28,7 +28,7 @@ import cz.msebera.android.httpclient.Header;
  */
 public class DemoGalleryHttpClient {
 
-    public static final String BASE_URI = "http://6493193f.ngrok.io";
+    public static final String BASE_URI = "http://5fd682a1.ngrok.io";
     private static final String CLIENT_ID = "img_sync";
     private static final String CLIENT_SECRET = "img_sync_secret";
     public static final String TOKEN_ENDPOINT = "/oauth/token";
@@ -240,7 +240,6 @@ public class DemoGalleryHttpClient {
         RequestParams requestParams = new RequestParams();
         requestParams.put("token", token);
         requestParams.put("userId", userId);
-        System.out.println(requestParams.toString());
         httpClient.post(String.format("%s/api/fb_login", BASE_URI), requestParams, responseHandler);
     }
 

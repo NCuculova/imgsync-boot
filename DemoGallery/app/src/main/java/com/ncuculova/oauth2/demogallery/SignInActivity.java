@@ -110,6 +110,7 @@ public class SignInActivity extends AppCompatActivity {
                                 super.onSuccessJsonObject(jsonObject);
                                 mPbLogin.setVisibility(View.GONE);
                                 try {
+                                    System.out.println("TOKEN: " + jsonObject.getString("access_token"));
                                     mPreferences.setAccessToken(jsonObject.getString("access_token"));
                                     mPreferences.setRefreshToken(jsonObject.getString("refresh_token"));
                                 } catch (JSONException e) {
@@ -131,7 +132,7 @@ public class SignInActivity extends AppCompatActivity {
                     @Override
                     public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONObject errorResponse) {
                         super.onFailure(statusCode, headers, throwable, errorResponse);
-                        System.out.println(throwable.toString());
+                        System.out.println(errorResponse.toString());
                     }
                 });
             }

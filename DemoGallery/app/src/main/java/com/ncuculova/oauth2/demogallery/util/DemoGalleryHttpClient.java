@@ -6,9 +6,6 @@ import android.util.Log;
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.JsonHttpResponseHandler;
 import com.loopj.android.http.RequestParams;
-import com.loopj.android.http.ResponseHandlerInterface;
-import com.loopj.android.http.SyncHttpClient;
-import com.loopj.android.http.TextHttpResponseHandler;
 import com.ncuculova.oauth2.demogallery.model.Image;
 import com.squareup.okhttp.Interceptor;
 import com.squareup.okhttp.OkHttpClient;
@@ -31,7 +28,7 @@ import cz.msebera.android.httpclient.Header;
  */
 public class DemoGalleryHttpClient {
 
-    public static final String BASE_URI = "http://072550a8.ngrok.io";
+    public static final String BASE_URI = "http://6493193f.ngrok.io";
     private static final String CLIENT_ID = "img_sync";
     private static final String CLIENT_SECRET = "img_sync_secret";
     public static final String TOKEN_ENDPOINT = "/oauth/token";

@@ -1,9 +1,10 @@
 package com.ncuculova.oauth2.demogallery;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.support.design.widget.NavigationView;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
-import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -11,12 +12,16 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.TextView;
 
+import com.facebook.FacebookSdk;
+import com.facebook.login.LoginManager;
+import com.ncuculova.oauth2.demogallery.util.DemoGalleryHttpClient;
 import com.ncuculova.oauth2.demogallery.util.Preferences;
+import com.squareup.picasso.Picasso;
 
-import java.util.PropertyResourceBundle;
-
-import butterknife.ButterKnife;
+import de.hdodenhof.circleimageview.CircleImageView;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -24,10 +29,13 @@ public class MainActivity extends AppCompatActivity
     private FragmentAlbums mFragmentAlbums;
     Preferences mPreferences;
 
+    TextView mTvUser;
+    CircleImageView mImgUser;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        ButterKnife.bind(this);
+        FacebookSdk.sdkInitialize(this);
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -41,10 +49,19 @@ public class MainActivity extends AppCompatActivity
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
+        mPreferences = Preferences.getInstance(this);
+        View headerView = navigationView.inflateHeaderView(R.layout.nav_header_main);
+        mTvUser = (TextView) headerView.findViewById(R.id.tv_user);
+        mImgUser = (CircleImageView) headerView.findViewById(R.id.iv_user);
+        Picasso picasso = DemoGalleryHttpClient.getPicassoClient(this);
+        picasso.load(mPreferences.getImgUrl())
+                .placeholder(R.drawable.ic_action_download)
+                .into(mImgUser);
+
+        String username = mPreferences.getUsername();
+        mTvUser.setText(username);
         mFragmentAlbums = new FragmentAlbums();
         setFragment(mFragmentAlbums);
-
-        mPreferences = Preferences.getInstance(this);
     }
 
     @Override
@@ -85,16 +102,12 @@ public class MainActivity extends AppCompatActivity
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        if (id == R.id.nav_camara) {
-            // Handle the camera action
-        } else if (id == R.id.nav_gallery) {
-
-        } else if (id == R.id.nav_share) {
-
-        } else if (id == R.id.nav_sign_out) {
+        if (id == R.id.nav_sign_out) {
             mPreferences.signOutUser();
-           // finish();
-            //to do
+            LoginManager manager = LoginManager.getInstance();
+            manager.logOut();
+            Intent intent = new Intent(this, SignInActivity.class);
+            startActivity(intent);
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);

@@ -33,7 +33,6 @@ import com.ncuculova.oauth2.demogallery.model.Image;
 import com.ncuculova.oauth2.demogallery.util.DemoGalleryHttpClient;
 import com.ncuculova.oauth2.demogallery.util.Preferences;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -49,7 +48,7 @@ import butterknife.OnClick;
 import cz.msebera.android.httpclient.Header;
 
 /**
- * Created by ncuculova on 6.12.15.
+ * Preview all created albums and containing images
  */
 public class AlbumImagesActivity extends AppCompatActivity
         implements LoaderManager.LoaderCallbacks<List<Image>> {
@@ -73,6 +72,9 @@ public class AlbumImagesActivity extends AppCompatActivity
 
     @Bind(R.id.progress_bar)
     ProgressBar mPbProgress;
+
+    @Bind(R.id.pb_load_img)
+    ProgressBar mPbLoadImages;
 
     public static final int RESULT_LOAD_IMG = 0;
     long mAlbumId;
@@ -218,10 +220,12 @@ public class AlbumImagesActivity extends AppCompatActivity
 
         @Override
         public void onImageDelete(final int position, long albumId, final long imgId) {
+            mPbProgress.setVisibility(View.VISIBLE);
             mClient.deleteImage(albumId, imgId, new DemoGalleryHttpClient.ResponseHandler() {
                 @Override
                 public void onSuccessJsonObject(JSONObject jsonObject) {
                     super.onSuccessJsonObject(jsonObject);
+                    mPbProgress.setVisibility(View.GONE);
                     mImageAdapter.deleteImageAt(position);
                     System.out.println(jsonObject.toString());
                 }
@@ -322,14 +326,14 @@ public class AlbumImagesActivity extends AppCompatActivity
     @Override
     public Loader<List<Image>> onCreateLoader(int id, Bundle args) {
         long albumId = args.getLong("album_id");
-        mPbProgress.setVisibility(View.VISIBLE);
+        mPbLoadImages.setVisibility(View.VISIBLE);
         return new ImagesLoader(this, albumId);
     }
 
     @Override
     public void onLoadFinished(Loader<List<Image>> loader, List<Image> data) {
         mImageAdapter.clear();
-        mPbProgress.setVisibility(View.GONE);
+        mPbLoadImages.setVisibility(View.GONE);
         for (Image img : data) {
             mImageAdapter.addImage(img);
         }

@@ -24,25 +24,18 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import javax.sql.DataSource;
 
 /**
- * Created by ncuculova on 9.11.15.
+ * Implementation of OAuth2 authorization server & resource server
  */
 @Configuration
 public class OAuthConfiguration {
+
+    static final int ACCESS_TOKEN_DURATION = 24 * 60 * 60; // 24 hours
 
     @EnableAuthorizationServer
     static class AuthorizationServerConfiguration extends AuthorizationServerConfigurerAdapter {
 
         @Autowired
         AuthenticationManager authenticationManager;
-
-
-        @Autowired
-        UserDetailsService userDetailsService;
-
-        @Bean
-        public AuthorizationCodeServices getCodeServices() {
-            return new InMemoryAuthorizationCodeServices();
-        }
 
         public TokenStore tokenStore() {
             return new InMemoryTokenStore();
@@ -73,7 +66,7 @@ public class OAuthConfiguration {
                     .withClient("img_sync").secret("img_sync_secret")
                     .authorities("USER", "ADMIN")
                     .authorizedGrantTypes("password", "authorization_code", "refresh_token")
-                    .scopes("read").accessTokenValiditySeconds(90);
+                    .scopes("read").accessTokenValiditySeconds(ACCESS_TOKEN_DURATION);
         }
 
         /**

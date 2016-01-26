@@ -10,15 +10,8 @@ import android.widget.TextView;
 
 import com.ncuculova.oauth2.demogallery.model.Album;
 import com.ncuculova.oauth2.demogallery.util.DemoGalleryHttpClient;
-import com.ncuculova.oauth2.demogallery.util.Preferences;
-import com.squareup.okhttp.Interceptor;
-import com.squareup.okhttp.OkHttpClient;
-import com.squareup.okhttp.Request;
-import com.squareup.okhttp.Response;
-import com.squareup.picasso.OkHttpDownloader;
 import com.squareup.picasso.Picasso;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -68,8 +61,14 @@ public class AlbumAdapter extends RecyclerView.Adapter<AlbumAdapter.AlbumViewHol
         holder.mPosition = position;
         String imageUrl = String.format("%s/api/image_thumb/%d", DemoGalleryHttpClient.BASE_URI, album.coverImageId);
         Picasso picasso = DemoGalleryHttpClient.getPicassoClient(mContext);
+        picasso.setLoggingEnabled(true);
+        picasso.setIndicatorsEnabled(true);
         picasso.load(imageUrl)
-                .placeholder(R.drawable.ic_action_download)
+                .placeholder(R.drawable.ph)
+                .resize(350, 500)
+                .onlyScaleDown()
+                .centerCrop()
+                .tag(mContext)
                 .into(holder.mImageView);
     }
 

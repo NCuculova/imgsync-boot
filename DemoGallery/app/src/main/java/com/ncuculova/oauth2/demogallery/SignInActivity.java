@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -28,6 +29,7 @@ import butterknife.OnClick;
 import cz.msebera.android.httpclient.Header;
 
 /**
+ * First screen
  * First step of providing resource owner credentials for an access token
  */
 public class SignInActivity extends AppCompatActivity {
@@ -44,8 +46,17 @@ public class SignInActivity extends AppCompatActivity {
     @Bind(R.id.tv_invalid_credentials)
     TextView mTvInvalid;
 
+    @Bind(R.id.tv_or)
+    TextView mTvOr;
+
     @Bind(R.id.login_button)
     LoginButton mLoginFbBtn;
+
+    @Bind(R.id.btn_sign_up)
+    Button mBtnSignUp;
+
+    @Bind(R.id.btn_sign_in)
+    Button mBtnSignIn;
 
     DemoGalleryHttpClient mClient;
     Preferences mPreferences;
@@ -67,6 +78,7 @@ public class SignInActivity extends AppCompatActivity {
             startActivity(intent);
             finish();
         }
+
         mCallbackManager = CallbackManager.Factory.create();
         mLoginFbBtn.setReadPermissions("email");
         mLoginFbBtn.registerCallback(mCallbackManager, new FacebookCallback<LoginResult>() {
@@ -74,18 +86,23 @@ public class SignInActivity extends AppCompatActivity {
             public void onSuccess(LoginResult loginResult) {
                 String token = loginResult.getAccessToken().getToken();
                 String userId = loginResult.getAccessToken().getUserId();
+                clearView();
                 mClient.signInWithFb(token, userId, new JsonHttpResponseHandler() {
                     @Override
                     public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
                         super.onSuccess(statusCode, headers, response);
                         String username = null;
                         String password = null;
+                        String imgUrl = null;
                         try {
                             username = response.getString("email");
                             password = response.getString("password");
+                            imgUrl = response.getString("pictureUrl");
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
+                        mPreferences.setUsername(username);
+                        mPreferences.setImgUrl(imgUrl);
                         mClient.getAccessToken(username, password, new DemoGalleryHttpClient.ResponseHandler() {
 
                             @Override
@@ -114,7 +131,7 @@ public class SignInActivity extends AppCompatActivity {
                     @Override
                     public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONObject errorResponse) {
                         super.onFailure(statusCode, headers, throwable, errorResponse);
-                        System.out.println(errorResponse.toString());
+                        System.out.println(throwable.toString());
                     }
                 });
             }
@@ -131,6 +148,15 @@ public class SignInActivity extends AppCompatActivity {
         });
     }
 
+    public void clearView(){
+        mEtEmail.setVisibility(View.GONE);
+        mEtPassword.setVisibility(View.GONE);
+        mLoginFbBtn.setVisibility(View.GONE);
+        mBtnSignIn.setVisibility(View.GONE);
+        mBtnSignUp.setVisibility(View.GONE);
+        mTvOr.setVisibility(View.GONE);
+    }
+
     @OnClick(R.id.btn_sign_in)
     public void signIn() {
         mPbLogin.setVisibility(View.VISIBLE);
@@ -144,6 +170,7 @@ public class SignInActivity extends AppCompatActivity {
                     mPbLogin.setVisibility(View.GONE);
                     mPreferences.setAccessToken(jsonObject.getString("access_token"));
                     mPreferences.setRefreshToken(jsonObject.getString("refresh_token"));
+                    mPreferences.setAccessToken(username);
                     Intent intent = new Intent(getApplicationContext(), MainActivity.class);
                     startActivity(intent);
                     finish();
@@ -167,11 +194,6 @@ public class SignInActivity extends AppCompatActivity {
         Intent intent = new Intent(getApplicationContext(), SignUpActivity.class);
         startActivity(intent);
     }
-
-   /* @OnClick(R.id.login_button)
-    public void signInWithFacebook(){
-
-    }*/
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {

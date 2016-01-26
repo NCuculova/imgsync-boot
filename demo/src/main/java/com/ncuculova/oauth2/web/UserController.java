@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Created by ncuculova on 28.10.15.
+ * RESTful API for Android mobile client
  */
 @RestController
 @RequestMapping(value = "/api", produces = "application/json")
@@ -46,7 +46,6 @@ public class UserController {
     @Autowired
     private AlbumImageService albumImageService;
 
-
     @RequestMapping(value = "/", method = RequestMethod.GET)
     public Map<String, String> dummyRequest() {
         return Collections.singletonMap("response", "OK");
@@ -58,17 +57,22 @@ public class UserController {
                              HttpServletResponse response) {
         String getFbNodeURL = "https://graph.facebook.com/v2.5/";
         RestTemplate client = new RestTemplate();
-        JsonNode node = client.getForObject(String.format("%s%s?fields=email&access_token=%s", getFbNodeURL, userId, token),
+        JsonNode node = client.getForObject(String.format("%s%s?fields=email&access_token=%s", getFbNodeURL,
+                        userId, token),
                 JsonNode.class);
+        JsonNode picture = client.getForObject(String.format("%s%s/picture?type=large&redirect=false&access_token=%s",
+                getFbNodeURL, userId, token), JsonNode.class);
         String username = node.get("email").asText();
+        String userProfilePictureUrl = picture.get("data").get("url").asText();
         User user = userService.findByEmail(username);
         if (user == null) {
             user = new User();
             user.setEmail(username);
             user.setPassword(StringUtils.generateRandomPassword());
-            userService.save(user);
             response.setStatus(HttpServletResponse.SC_CREATED);
         }
+        user.setPictureUrl(userProfilePictureUrl);
+        userService.save(user);
         return user;
     }
 
@@ -169,6 +173,8 @@ public class UserController {
             OutputStream out = response.getOutputStream();
             response.setContentType(image.getFileType());
             response.setContentLength((int) blob.length());
+            response.setHeader("Cache-control", "public,max-age=86400");
+            response.setHeader("Pragma", "cache");
             IOUtils.copy(blob.getBinaryStream(), out);
             out.flush();
             //out.close();

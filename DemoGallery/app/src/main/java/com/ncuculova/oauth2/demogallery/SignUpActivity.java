@@ -1,29 +1,23 @@
 package com.ncuculova.oauth2.demogallery;
 
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 
-import com.loopj.android.http.JsonHttpResponseHandler;
 import com.ncuculova.oauth2.demogallery.util.DemoGalleryHttpClient;
 import com.ncuculova.oauth2.demogallery.util.Preferences;
 
 import org.apache.commons.validator.routines.EmailValidator;
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
-import cz.msebera.android.httpclient.Header;
-import cz.msebera.android.httpclient.HttpResponse;
 
 /**
  * Create new user if email is unique
@@ -79,7 +73,7 @@ public class SignUpActivity extends AppCompatActivity {
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
-
+                        mPreferences.setUsername(username);
                         mClient.getAccessToken(username, password, new DemoGalleryHttpClient.ResponseHandler() {
 
                             @Override

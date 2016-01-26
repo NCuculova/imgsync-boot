@@ -14,7 +14,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
 
-import com.loopj.android.http.JsonHttpResponseHandler;
 import com.ncuculova.oauth2.demogallery.model.Album;
 import com.ncuculova.oauth2.demogallery.util.ApproveDialog;
 import com.ncuculova.oauth2.demogallery.util.DemoGalleryHttpClient;
@@ -28,8 +27,6 @@ import java.util.List;
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
-import cz.msebera.android.httpclient.Header;
-import cz.msebera.android.httpclient.HttpResponse;
 
 /**
  * Created by ncuculova on 6.12.15.

@@ -51,6 +51,24 @@ public class Preferences {
         return false;
     }
 
+    public void setUsername(String username){
+        editor.putString("username", username);
+        editor.commit();
+    }
+
+    public String getUsername(){
+        return preferences.getString("username", "");
+    }
+
+    public void setImgUrl(String imgUrl){
+        editor.putString("img", imgUrl);
+        editor.commit();
+    }
+
+    public String getImgUrl(){
+        return preferences.getString("img", "/");
+    }
+
     public void signOutUser(){
         editor.clear();
         editor.commit();

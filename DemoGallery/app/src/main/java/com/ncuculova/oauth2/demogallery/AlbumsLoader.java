@@ -1,10 +1,7 @@
 package com.ncuculova.oauth2.demogallery;
 
 import android.content.Context;
-import android.support.v4.content.AsyncTaskLoader;
-import android.util.Log;
 
-import com.loopj.android.http.JsonHttpResponseHandler;
 import com.ncuculova.oauth2.demogallery.model.Album;
 import com.ncuculova.oauth2.demogallery.util.DemoGalleryHttpClient;
 import com.ncuculova.oauth2.demogallery.util.HttpLoader;
@@ -16,8 +13,6 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import cz.msebera.android.httpclient.Header;
 
 public class AlbumsLoader extends HttpLoader<List<Album>> {
 

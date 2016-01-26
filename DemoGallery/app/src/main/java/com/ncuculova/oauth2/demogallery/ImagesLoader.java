@@ -1,9 +1,7 @@
 package com.ncuculova.oauth2.demogallery;
 
 import android.content.Context;
-import android.support.v4.content.AsyncTaskLoader;
 
-import com.loopj.android.http.JsonHttpResponseHandler;
 import com.ncuculova.oauth2.demogallery.model.Image;
 import com.ncuculova.oauth2.demogallery.util.DemoGalleryHttpClient;
 import com.ncuculova.oauth2.demogallery.util.HttpLoader;
@@ -15,8 +13,6 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import cz.msebera.android.httpclient.Header;
 
 /**
  * Created by ncuculova on 11.12.15.

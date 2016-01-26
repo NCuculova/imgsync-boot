@@ -18,6 +18,16 @@ public class User extends BaseEntity{
     @NotEmpty
     private String password;
 
+    private String pictureUrl;
+
+    public String getPictureUrl() {
+        return pictureUrl;
+    }
+
+    public void setPictureUrl(String pictureUrl) {
+        this.pictureUrl = pictureUrl;
+    }
+
     public String getEmail() {
         return email;
     }

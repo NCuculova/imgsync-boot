@@ -2,7 +2,6 @@ package com.ncuculova.oauth2.demogallery;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,11 +9,7 @@ import android.widget.ImageView;
 
 import com.ncuculova.oauth2.demogallery.model.Image;
 import com.ncuculova.oauth2.demogallery.util.DemoGalleryHttpClient;
-import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
-
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
